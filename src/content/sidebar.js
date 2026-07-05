@@ -16,7 +16,14 @@
   });
   let context = window.NeuralPhantomContext.detect();
   let view = engine.buildAssistantView(context, state.activeModule);
-  let lastAnswer = "Select a module or ask a question to get context-aware help.";
+  let isThinking = false;
+  let messages = [
+    {
+      role: "assistant",
+      text: "Hey, I am NeuralPhantom. Pick a mode, select text on the page, or ask me what to do next.",
+      meta: "Ready"
+    }
+  ];
 
   function el(tag, attrs = {}, children = []) {
     const node = document.createElement(tag);
@@ -44,6 +51,14 @@
     state = { ...state, activeModule: moduleId };
     await storage.saveState(state);
     refreshContext();
+    messages = [
+      ...messages,
+      {
+        role: "assistant",
+        text: `Switched to ${view.activeModule.label}. I will shape answers around this page and that goal.`,
+        meta: "Mode changed"
+      }
+    ].slice(-12);
     render();
   }
 
@@ -54,17 +69,29 @@
     }
 
     refreshContext();
+    messages = [
+      ...messages,
+      { role: "user", text, meta: "You" }
+    ].slice(-12);
+    isThinking = true;
+    render();
+
     const result = await engine.askAssistant({
       context,
       moduleId: state.activeModule,
       message: text
     });
-    lastAnswer = result.answer;
+    messages = [
+      ...messages,
+      { role: "assistant", text: result.answer, meta: view.activeModule.label }
+    ].slice(-12);
+    isThinking = false;
     render();
   }
 
   async function saveNote() {
-    const text = lastAnswer.trim();
+    const lastAssistantMessage = [...messages].reverse().find((message) => message.role === "assistant");
+    const text = lastAssistantMessage?.text.trim() || "";
     if (!text) {
       return;
     }
@@ -78,6 +105,10 @@
         title: context.title
       })
     };
+    messages = [
+      ...messages,
+      { role: "assistant", text: "Saved that as a note for this page.", meta: "Saved" }
+    ].slice(-12);
     render();
   }
 
@@ -90,6 +121,10 @@
         source: context.url
       })
     };
+    messages = [
+      ...messages,
+      { role: "assistant", text: "Goal captured. Small progress still counts when it is tracked.", meta: "Goal saved" }
+    ].slice(-12);
     render();
   }
 
@@ -103,13 +138,13 @@
 
   function renderGoals() {
     if (!state.goals.length) {
-      return el("p", {
-        className: "np-list",
+      return el("div", {
+        className: "np-empty",
         text: "No goals yet. Save one from the current page when something matters."
       });
     }
 
-    return el("div", { className: "np-list" }, state.goals.slice(0, 5).map((goal) => {
+    return el("div", { className: "np-goals" }, state.goals.slice(0, 4).map((goal) => {
       const checkbox = el("input", {
         type: "checkbox",
         ...(goal.completed ? { checked: "checked" } : {}),
@@ -122,20 +157,48 @@
     }));
   }
 
+  function renderMessages() {
+    const renderedMessages = messages.map((message) => el("div", {
+      className: `np-message ${message.role === "user" ? "from-user" : "from-assistant"}`
+    }, [
+      el("div", { className: "np-message-meta", text: message.meta || (message.role === "user" ? "You" : "NeuralPhantom") }),
+      el("div", { className: "np-bubble", text: message.text })
+    ]));
+
+    if (isThinking) {
+      renderedMessages.push(el("div", { className: "np-message from-assistant" }, [
+        el("div", { className: "np-message-meta", text: "NeuralPhantom" }),
+        el("div", { className: "np-bubble typing" }, [
+          el("span"),
+          el("span"),
+          el("span")
+        ])
+      ]));
+    }
+
+    return renderedMessages;
+  }
+
   function renderComposer() {
     const input = el("textarea", {
       className: "np-input",
       placeholder: "Ask for help with this page or selected text..."
+    });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey) {
+        event.preventDefault();
+        submitQuestion(input.value);
+      }
     });
 
     return el("footer", { className: "np-composer" }, [
       input,
       el("div", { className: "np-actions" }, [
         el("button", {
-          className: "np-button",
+          className: "np-button primary",
           type: "button",
           onclick: () => submitQuestion(input.value)
-        }, [document.createTextNode("Ask")]),
+        }, [document.createTextNode("Send")]),
         el("button", {
           className: "np-button secondary",
           type: "button",
@@ -161,10 +224,12 @@
     root.textContent = "";
     root.append(el("div", { className: "np-shell" }, [
       el("header", { className: "np-header" }, [
+        el("div", { className: "np-orb", text: "N" }),
         el("div", { className: "np-title" }, [
           el("strong", { text: "NeuralPhantom Assistant" }),
-          el("span", { title: context.url, text: `${context.pageType} - ${context.hostname}` })
+          el("span", { title: context.url, text: `${view.activeModule.label} on ${context.hostname}` })
         ]),
+        el("span", { className: "np-premium", text: "Premium" }),
         el("button", {
           className: "np-icon-button",
           type: "button",
@@ -173,7 +238,14 @@
           onclick: hide
         }, [document.createTextNode("x")])
       ]),
-      el("div", { className: "np-body" }, [
+      el("main", { className: "np-main" }, [
+        el("section", { className: "np-context-card" }, [
+          el("div", { className: "np-context-top" }, [
+            el("span", { className: "np-context-label", text: context.pageType }),
+            el("span", { className: "np-context-site", text: context.hostname || "current page" })
+          ]),
+          el("p", { text: context.selection ? `Selected: ${context.selection.slice(0, 150)}` : context.title || "Listening to this page" })
+        ]),
         el("nav", { className: "np-tabs", "aria-label": "Assistant modules" },
           view.modules.map((module) => el("button", {
             className: "np-tab",
@@ -182,31 +254,17 @@
             onclick: () => setActiveModule(module.id)
           }, [document.createTextNode(module.label)]))
         ),
-        el("main", { className: "np-main" }, [
-          el("div", { className: "np-scroll" }, [
-            el("section", { className: "np-section" }, [
-              el("h3", { text: "Detected Context" }),
-              el("pre", { className: "np-context", text: view.contextSummary })
-            ]),
-            el("section", { className: "np-section" }, [
-              el("h3", { text: "Quick Prompts" }),
-              el("div", { className: "np-suggestions" }, view.suggestions.map((suggestion) => el("button", {
-                className: "np-chip",
-                type: "button",
-                onclick: () => submitQuestion(suggestion)
-              }, [document.createTextNode(suggestion)])))
-            ]),
-            el("section", { className: "np-section" }, [
-              el("h3", { text: "Assistant" }),
-              el("div", { className: "np-answer", text: lastAnswer })
-            ]),
-            el("section", { className: "np-section" }, [
-              el("h3", { text: "Goals" }),
-              renderGoals()
-            ])
-          ]),
-          renderComposer()
-        ])
+        el("section", { className: "np-suggestions" }, view.suggestions.map((suggestion) => el("button", {
+          className: "np-chip",
+          type: "button",
+          onclick: () => submitQuestion(suggestion)
+        }, [document.createTextNode(suggestion)]))),
+        el("section", { className: "np-chat", "aria-label": "Conversation" }, renderMessages()),
+        el("section", { className: "np-goal-dock" }, [
+          el("div", { className: "np-dock-title", text: "Goal Tracker" }),
+          renderGoals()
+        ]),
+        renderComposer()
       ])
     ]));
   }

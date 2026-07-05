@@ -6,6 +6,7 @@ NeuralPhantom Assistant is a Chrome Manifest V3 extension that adds a persistent
 
 - Persistent in-page sidebar on all supported websites
 - Toolbar button and `Alt+Shift+N` toggle
+- Premium chatbot-style interface with message bubbles, quick prompts, mode pills, and typing feedback
 - Website, URL, title, selection, metadata, heading, and page-type detection
 - Modular assistant domains for learning, productivity, software development, cybersecurity training, career growth, and goals
 - Local notes and goal tracking through Chrome storage
