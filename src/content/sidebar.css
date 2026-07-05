@@ -1,0 +1,262 @@
+:root {
+  --np-width: 380px;
+}
+
+#neuralphantom-root {
+  all: initial;
+  color-scheme: light;
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 2147483647;
+  width: min(var(--np-width), calc(100vw - 32px));
+  height: min(760px, calc(100vh - 32px));
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #17202a;
+}
+
+#neuralphantom-root * {
+  box-sizing: border-box;
+  font-family: inherit;
+}
+
+.np-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  border: 1px solid #cfd8e3;
+  border-radius: 8px;
+  background: #fbfcfe;
+  box-shadow: 0 18px 55px rgba(18, 30, 48, 0.22);
+}
+
+.np-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #101828;
+  color: #f8fafc;
+}
+
+.np-title {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.np-title strong {
+  font-size: 14px;
+  line-height: 18px;
+}
+
+.np-title span {
+  max-width: 270px;
+  overflow: hidden;
+  color: #cbd5e1;
+  font-size: 12px;
+  line-height: 16px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.np-icon-button,
+.np-button {
+  border: 0;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.np-icon-button {
+  display: grid;
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
+  font-size: 18px;
+}
+
+.np-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.np-tabs {
+  display: flex;
+  flex: 0 0 112px;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px;
+  border-right: 1px solid #e2e8f0;
+  background: #f1f5f9;
+}
+
+.np-tab {
+  width: 100%;
+  padding: 8px 7px;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: transparent;
+  color: #334155;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 15px;
+  text-align: left;
+}
+
+.np-tab[aria-selected="true"] {
+  border-color: #b8c7dc;
+  background: #ffffff;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.np-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+}
+
+.np-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 14px;
+}
+
+.np-section {
+  margin-bottom: 14px;
+}
+
+.np-section h3 {
+  margin: 0 0 8px;
+  color: #0f172a;
+  font-size: 12px;
+  line-height: 16px;
+  text-transform: uppercase;
+}
+
+.np-context,
+.np-answer,
+.np-list {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid #dbe4ef;
+  border-radius: 7px;
+  background: #ffffff;
+  color: #1f2937;
+  font-size: 12px;
+  line-height: 17px;
+  white-space: pre-wrap;
+}
+
+.np-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.np-chip {
+  padding: 6px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #263445;
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 15px;
+}
+
+.np-composer {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border-top: 1px solid #e2e8f0;
+  background: #ffffff;
+}
+
+.np-input {
+  width: 100%;
+  min-height: 72px;
+  resize: vertical;
+  border: 1px solid #cbd5e1;
+  border-radius: 7px;
+  padding: 9px;
+  color: #17202a;
+  font-size: 13px;
+  line-height: 18px;
+}
+
+.np-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.np-button {
+  flex: 1;
+  min-height: 34px;
+  padding: 7px 10px;
+  background: #155eef;
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.np-button.secondary {
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #1f2937;
+}
+
+.np-goal {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 7px 0;
+  border-bottom: 1px solid #eef2f7;
+}
+
+.np-goal:last-child {
+  border-bottom: 0;
+}
+
+.np-goal input {
+  margin-top: 2px;
+}
+
+@media (max-width: 520px) {
+  #neuralphantom-root {
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  .np-shell {
+    border-radius: 0;
+  }
+
+  .np-body {
+    flex-direction: column;
+  }
+
+  .np-tabs {
+    flex: 0 0 auto;
+    flex-direction: row;
+    overflow-x: auto;
+    border-right: 0;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .np-tab {
+    flex: 0 0 104px;
+  }
+}

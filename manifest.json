@@ -1,0 +1,53 @@
+{
+  "manifest_version": 3,
+  "name": "NeuralPhantom Assistant",
+  "description": "A persistent context-aware AI sidebar for learning, productivity, software development, cybersecurity training, career growth, and personal goal tracking.",
+  "version": "0.1.0",
+  "action": {
+    "default_title": "Toggle NeuralPhantom Assistant"
+  },
+  "background": {
+    "service_worker": "src/background.js",
+    "type": "module"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "src/core/modules.js",
+        "src/core/storage.js",
+        "src/core/assistant-engine.js",
+        "src/content/context-detector.js",
+        "src/content/sidebar.js"
+      ],
+      "css": [
+        "src/content/sidebar.css"
+      ],
+      "run_at": "document_idle"
+    }
+  ],
+  "commands": {
+    "toggle-sidebar": {
+      "suggested_key": {
+        "default": "Alt+Shift+N"
+      },
+      "description": "Toggle NeuralPhantom Assistant"
+    }
+  },
+  "icons": {
+    "16": "assets/icon-16.png",
+    "48": "assets/icon-48.png",
+    "128": "assets/icon-128.png"
+  }
+}
